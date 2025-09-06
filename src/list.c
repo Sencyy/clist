@@ -6,6 +6,7 @@
 typedef struct Node {
     int value;
     struct Node *next;
+    struct Node *prev;
 } Node;
 
 typedef struct List {
@@ -20,18 +21,39 @@ void list_push(List *l, int v) {
     Node *new_node = malloc(sizeof(Node));
     if (new_node){
         new_node->value = v;
-        if (l->head == NULL && l->tail == NULL && l->len == 0) { // checking if we have an empty list
-            new_node->next = NULL; // setting this node's next to null bcuz this will be the only node in the list
+        if (l->len == 0) { // if list is empty
+            new_node->next = NULL;
+            new_node->prev = NULL;
+
             l->head = new_node;
             l->tail = new_node;
+
             l->len++;
-        } else if (l->head == l->tail) {
-            l->head = new_node;
-            l->head->next = l->tail;
+        } else if (l->len == 1) { // if there's only a single item
+            Node *new_head = new_node;
+            Node *new_tail = l->head;
+
+            new_head->next = new_tail;
+            new_head->prev = NULL;
+
+            new_tail->next = NULL;
+            new_tail->prev = new_head;
+
+            l->head = new_head;
+            l->tail = new_tail;
+
             l->len++;
-        } else {
-            new_node->next = l->head;
-            l->head = new_node;
+        } else { // otherwise the list has multiple elements
+            Node *new_head = new_node;
+            Node *old_head = l->head;
+
+            new_head->next = old_head;
+            new_head->prev = NULL;
+
+            old_head->prev = new_head;
+
+            l->head = new_head;
+
             l->len++;
         }
     } else {
@@ -42,41 +64,75 @@ void list_push(List *l, int v) {
 
 void list_push_back(List *l, int v) {
     Node *new_node = malloc(sizeof(Node));
-    if (new_node) {
+    if (new_node){
         new_node->value = v;
-        if (l->head == NULL && l->tail == NULL) { // checking if we have an empty list
-            new_node->next = NULL; // setting this node's next to null bcuz this will be the only node in the list
+        if (l->len == 0) { // if list is empty
+            new_node->next = NULL;
+            new_node->prev = NULL;
+
             l->head = new_node;
             l->tail = new_node;
+
             l->len++;
-        } else {
-            new_node->next = NULL;
-            l->tail->next = new_node;
-            l->tail = new_node;
+        } else if (l->len == 1) { // if there's only a single item
+            Node *new_tail = new_node;
+            Node *new_head = l->head;
+
+            new_head->next = new_tail;
+            new_head->prev = NULL;
+
+            new_tail->next = NULL;
+            new_tail->prev = new_head;
+
+            l->head = new_head;
+            l->tail = new_tail;
+
+            l->len++;
+        } else { // otherwise the list has multiple elements
+            Node *new_tail = new_node;
+            Node *old_tail = l->tail;
+
+            new_tail->next = NULL;
+            new_tail->prev = old_tail;
+
+            old_tail->next = new_tail;
+
+            l->tail = new_tail;
+
             l->len++;
         }
     } else {
-        perror("Cannot allocate memory");
-        exit(1); // TODO: idk if this is really needed
+        perror("Failed to allocate memory");
+        exit(1);
     }
 }
 
 
 int list_pop(List *l) {
     int pull;
-    if (l->head == NULL && l->tail == NULL) { // if the list is empty give back a 0
-        pull = 0;
-    } else if (l->head == l->tail) { // if our list has only one element
-        pull = l->head->value;
-        free(l->head);
+    if (l->len == 0) { // if list is empty return 0
+        pull = 0; // TODO: distinguish whether the list is empty or it has a 0 stored
+    } else if (l->len == 1) { // if it has a single element
+        Node *old_head = l->head;
+        pull = old_head->value;
+
         l->head = NULL;
         l->tail = NULL;
+
+        free(old_head);
+
         l->len--;
-    } else {
-        pull = l->head->value;
-        Node *tmphead = l->head;
-        l->head = l->head->next;
-        free(tmphead);
+    } else { // it has multiple elements
+        Node *old_head = l->head;
+        Node *new_head = old_head->next;
+
+        pull = old_head->value;
+
+        l->head = new_head;
+        l->head->prev = NULL;
+
+        free(old_head);
+
         l->len--;
     }
 
@@ -85,37 +141,35 @@ int list_pop(List *l) {
 
 int list_pop_back(List *l) {
     int pull;
-    if (l->head == NULL && l->tail == NULL) { // if the list is empty give back a 0
-        pull = 0;
-    } else if (l->len == 1) { // if our list has only one element
-        pull = l->tail->value;
-        free(l->tail);
+    if (l->len == 0) { // if list is empty return 0
+        pull = 0; // TODO: distinguish whether the list is empty or it has a 0 stored
+    } else if (l->len == 1) { // if it has a single element
+        Node *old_tail = l->tail;
+        pull = old_tail->value;
+
         l->head = NULL;
         l->tail = NULL;
-        l->len--;
-    } else {
-        pull = l->tail->value;
-        l->len--;
-        Node *tmptail = l->tail;
 
-        Node *looptail = l->head;
-        Node *lasttail;
-        while (looptail->next != NULL) { // after this loop, looptail should be our current tail
-            lasttail = looptail;         // and lasttail should be new tail of the list
-            looptail = looptail->next;
-        }
-        l->tail = lasttail;
+        free(old_tail);
+
+        l->len--;
+    } else { // it has multiple elements
+        pull = l->tail->value;
+
+        Node *old_tail = l->tail;
+        Node *new_tail = old_tail->prev;
+
+
+        l->tail = new_tail;
         l->tail->next = NULL;
-        if (l->len == 1) { // if our list has only one element after taking this out
-            l->head->next = NULL; // it's the only element in the list, what would you expect?
-            l->tail = l->head; // i'm such a dumb idiot
-        }
-        free(tmptail);
+
+        free(old_tail);
+
+        l->len--;
     }
 
     return pull;
 }
-
 unsigned int list_length(List *l) {
     return l->len;
 }

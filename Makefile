@@ -1,5 +1,5 @@
-test: list.o test.c
-	cc -o test src/test.c src/list.o -lcunit
+test: src/list.o
+	cc -o test src/test.c list.o -lcunit -g
 
-list.o: list.c
-	cc -o src/list.o -c src/list.c
+src/list.o: src/list.c
+	cc -o list.o -c src/list.c -g

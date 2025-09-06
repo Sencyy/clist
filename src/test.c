@@ -3,7 +3,6 @@
 #include <CUnit/CUnit.h>
 #include <CUnit/Basic.h>
 #include <CUnit/TestDB.h>
-#include <stdio.h>
 
 void list_init_test() {
     List l;
@@ -144,12 +143,12 @@ int main() {
     CU_pSuite test_suite = CU_add_suite("list tests", NULL, NULL);
 
     CU_add_test(test_suite, "list_init", list_init_test);
-    CU_add_test(test_suite, "list_destroy", list_destroy_test);
     CU_add_test(test_suite, "list_push", list_push_test);
     CU_add_test(test_suite, "list_push_back", list_push_back_test);
     CU_add_test(test_suite, "list_pop", list_pop_test);
     CU_add_test(test_suite, "list_pop_back", list_pop_back_test);
     CU_add_test(test_suite, "list_length", list_length_test);
+    CU_add_test(test_suite, "list_destroy", list_destroy_test);
 
     CU_basic_set_mode(CU_BRM_VERBOSE);
     CU_basic_run_tests();
